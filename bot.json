@@ -1,0 +1,8 @@
+{
+  "Author":"Leonard Seymore",
+  "Email":"leonardseymore@gmail.com",
+  "NickName" :"Haywired",
+  "BotType": 1,
+  "ProjectLocation" : "",
+  "RunFile" : "target\\entelect-2017-1.0-SNAPSHOT-jar-with-dependencies.jar"
+}
