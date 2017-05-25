@@ -121,6 +121,12 @@ public class GUI extends JFrame {
                 File subDir = new File(replayDir, dir);
                 File inputState = new File(subDir, "A/input-state.json");
                 File botStateFile = new File(subDir, "A/bot-state.json");
+
+                if (!inputState.exists()){
+                    inputState = new File(subDir, "B/input-state.json");
+                    botStateFile = new File(subDir, "B/bot-state.json");
+                }
+
                 File gameStateBothFile = new File(subDir, "state.json");
                 setGameState(Util.loadState(inputState), Util.loadBotState(botStateFile), Util.loadState(gameStateBothFile));
 
@@ -423,6 +429,13 @@ public class GUI extends JFrame {
         }
     }
 
+    private PlayerMap getOpponentPlayerMap() {
+        if (gameState.PlayerMap.Owner.Key == 'A') {
+            return gameStateBoth.Player2Map;
+        }
+        return gameStateBoth.Player1Map;
+    }
+
     private void updateOpponentMapLayout(){
         if (opponentPanel != null) {
             clearPanel(opponentPanel);
@@ -447,7 +460,7 @@ public class GUI extends JFrame {
 
         opponentMapButtons = new JButton[mapDimension][mapDimension];
 
-        PlayerMap opponentPlayerMap = gameStateBoth.Player2Map;
+        PlayerMap opponentPlayerMap = getOpponentPlayerMap();
         for (int i = 0; i < mapDimension; i++) {
             for (int j = 0; j < mapDimension; j++) {
                 Cell cell = opponentPlayerMap.getCellAt(j, i);
