@@ -1,1 +1,1 @@
-{"Mode":"TARGET","LastTrackerHits":[{"x":9,"y":6},{"x":8,"y":6}],"LastShot":{"x":7,"y":6},"LastOpponentShipStatus":{"Cruiser":false,"Submarine":true,"Battleship":true,"Carrier":true,"Destroyer":true},"LastDestroyedShip":"Destroyer"}
+{"Mode":"TARGET","LastTrackerHits":[{"x":3,"y":4}],"LastShot":{"x":3,"y":5},"LastOpponentShipStatus":{"Cruiser":true,"Submarine":true,"Battleship":true,"Carrier":true,"Destroyer":false},"LastDestroyedShip":"Cruiser"}

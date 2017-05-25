@@ -409,6 +409,20 @@ public class GUI extends JFrame {
                 playerMapButtons[j][i] = cellButton;
             }
         }
+
+        if (playerMap.Owner.Ships != null) {
+            for (Ship ship : playerMap.Owner.Ships) {
+                if (ship.Cells.isEmpty()) {
+                    continue;
+                }
+                for (Cell cell : ship.Cells) {
+                    if (cell == null) {
+                        continue;
+                    }
+                    playerMapButtons[cell.X][cell.Y].setText(ship.ShipType.getShortVal());
+                }
+            }
+        }
     }
 
     private void highlightBestShot(){
@@ -493,6 +507,7 @@ public class GUI extends JFrame {
         if (opponentPlayerMap.Owner.Ships != null) {
             for (Ship ship : opponentPlayerMap.Owner.Ships) {
                 for (Cell cell : ship.Cells) {
+                    if (cell == null) continue;
                     opponentMapButtons[cell.X][cell.Y].setText(ship.ShipType.getShortVal());
                 }
             }
@@ -506,12 +521,16 @@ public class GUI extends JFrame {
     }
 
     private Color getPlayerMapColor(Cell cell) {
-        if (cell.Occupied) {
-            return Color.blue;
+        if (cell.Hit) {
+            if (cell.Occupied) {
+                return Color.red;
+            } else {
+                return Color.yellow;
+            }
         }
 
-        if (cell.Hit) {
-            return Color.red;
+        if (cell.Occupied) {
+            return Color.green;
         }
 
         return Color.white;

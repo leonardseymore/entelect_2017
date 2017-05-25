@@ -12,6 +12,7 @@ import za.co.entelect.challenge.domain.state.Cell;
 import za.co.entelect.challenge.domain.state.GameState;
 import za.co.entelect.challenge.domain.state.OpponentCell;
 import za.co.entelect.challenge.domain.state.OpponentShip;
+import za.co.entelect.challenge.strategy.placement.LowestPlacementStrategy;
 import za.co.entelect.challenge.strategy.placement.Placement;
 import za.co.entelect.challenge.strategy.placement.RandomPlacementStrategy;
 import za.co.entelect.challenge.strategy.shoot.HuntShootStrategy;
@@ -20,6 +21,7 @@ import za.co.entelect.challenge.strategy.shoot.TargetShootStrategy;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -51,8 +53,24 @@ public class BotStrategy {
         ArrayList<ShipType> shipPlacements = new ArrayList<>();
         ArrayList<Point> points = new ArrayList<>();
         ArrayList<Direction> directions = new ArrayList<>();
-        for (ShipType shipType : ShipType.values()) {
-            PlacementStrategy placementStrategy = new RandomPlacementStrategy(copy, shipType);
+
+        List<ShipType> placementOrder = Arrays.asList(ShipType.values());
+        placementOrder.sort((o1, o2) -> Integer.compare(o1.getSize(), o2.getSize()));
+
+        for (ShipType shipType : placementOrder) {
+            final PlacementStrategy placementStrategy;
+            switch (shipType) {
+                case Destroyer:
+                case Submarine:
+                    placementStrategy = new LowestPlacementStrategy(copy, shipType);
+                    break;
+                default:
+                    placementStrategy = new RandomPlacementStrategy(copy, shipType);
+                    break;
+            }
+
+            logger.info("Placed {} with {}", shipType, placementStrategy.getClass().getName());
+
             Placement placement = placementStrategy.getPlacement();
             shipPlacements.add(placement.shipType);
             points.add(placement.start);
@@ -89,15 +107,15 @@ public class BotStrategy {
             }
         }
 
+        List<Point> lastHits = botState.LastTrackerHits;
         for (OpponentShip ship : gameState.OpponentMap.Ships) {
             boolean destroyed = botState.LastOpponentShipStatus.get(ship.ShipType);
             if (ship.Destroyed && !destroyed) {
                 botState.LastDestroyedShip = ship.ShipType;
                 int size = ship.ShipType.getSize();
-                List<Point> lastHits = botState.LastTrackerHits;
-
                 List<List<Point>> p = getDestroyedShipPossibilities(size);
                 if (p.size() > 1) {
+                    lastHits.removeAll(p.get(0));
                     logger.warn("We have multiple potentials for " + ship.ShipType);
                 } else if (p.size() > 0) {
                     lastHits.removeAll(p.get(0));
@@ -105,13 +123,12 @@ public class BotStrategy {
                 } else {
                     logger.warn("Got no matching potentials for " + ship.ShipType);
                 }
-                //lastHits.subList(lastHits.size() - size, lastHits.size()).clear();
-
-                if (lastHits.size() == 0) {
-                    botState.Mode = BotMode.HUNT;
-                }
             }
             botState.LastOpponentShipStatus.put(ship.ShipType, ship.Destroyed);
+        }
+
+        if (lastHits.size() == 0) {
+            botState.Mode = BotMode.HUNT;
         }
     }
 
