@@ -22,12 +22,39 @@ public class LowestPlacementStrategy extends PlacementStrategy {
         return new Placement(shipType, start, getDirection(start));
     }
 
+    private boolean isTooCloseToCorner(Point p) {
+        int mapDimension = gameState.MapDimension;
+        int x = p.getX();
+        int y = p.getY();
+
+        if (x < 2 && y < 2) {
+            return true;
+        }
+
+        if (x < 2 && y > mapDimension - 3) {
+            return true;
+        }
+
+        if (x > mapDimension - 3 && y < 2) {
+            return true;
+        }
+
+        if (x > mapDimension -3 && y > mapDimension - 3) {
+            return true;
+        }
+
+        return false;
+    }
+
     public Point getPosition() {
         PlacementMap map = new PlacementMap(gameState);
         List<Probability> probabilities = map.getProbabilitiesWrapped();
-        List<Probability> options = probabilities.stream().filter(probability -> probability.value > 0.1).collect(Collectors.toList());
+        List<Probability> options = probabilities
+                .stream()
+                .filter(p -> p.value > 0.1 && !isTooCloseToCorner(p.getPoint()))
+                .collect(Collectors.toList());
         Collections.sort(options, (o1, o2) -> Float.compare(o1.value, o2.value));
-        List<Probability> randomOptions = options.subList(1, 10);
+        List<Probability> randomOptions = options.subList(0, 10);
         Collections.shuffle(randomOptions);
         return randomOptions.get(0).getPoint();
     }

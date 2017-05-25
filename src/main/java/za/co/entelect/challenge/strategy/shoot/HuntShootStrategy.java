@@ -19,11 +19,11 @@ public class HuntShootStrategy {
 
     private static Logger logger = LoggerFactory.getLogger(HuntShootStrategy.class);
 
-    public Command executeStrategy(GameState gameState, BotState botState) {
-        return huntShotCommand(gameState, botState);
+    public Command executeStrategy(GameState gameState, BotState botState, boolean highest) {
+        return huntShotCommand(gameState, botState, highest ? -1 : 1);
     }
 
-    private Command huntShotCommand(GameState gameState, BotState botState) {
+    private Command huntShotCommand(GameState gameState, BotState botState, int order) {
         ProbabilityMap huntMap = new ProbabilityMap(gameState, ProbabilityMapType.HUNT, null);
         int MapDimension = gameState.MapDimension;
         OpponentMap opponentMap = gameState.OpponentMap;
@@ -38,12 +38,14 @@ public class HuntShootStrategy {
                     continue;
                 }
                 float probability = huntMap.getProbability(j, i);
-                candidates.add(new ShootCandidate(cell, probability));
+                if (probability > 0) {
+                    candidates.add(new ShootCandidate(cell, probability));
+                }
             }
         }
 
         Optional<ShootCandidate> bestShot = candidates.stream()
-                .sorted((a, b) -> -Float.compare(a.probability, b.probability))
+                .sorted((a, b) -> order * Float.compare(a.probability, b.probability))
                 .findFirst();
 
         if (!bestShot.isPresent()) {

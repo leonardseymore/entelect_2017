@@ -12,11 +12,8 @@ import za.co.entelect.challenge.domain.state.Cell;
 import za.co.entelect.challenge.domain.state.GameState;
 import za.co.entelect.challenge.domain.state.OpponentCell;
 import za.co.entelect.challenge.domain.state.OpponentShip;
-import za.co.entelect.challenge.strategy.placement.LowestPlacementStrategy;
-import za.co.entelect.challenge.strategy.placement.Placement;
-import za.co.entelect.challenge.strategy.placement.RandomPlacementStrategy;
+import za.co.entelect.challenge.strategy.placement.*;
 import za.co.entelect.challenge.strategy.shoot.HuntShootStrategy;
-import za.co.entelect.challenge.strategy.placement.PlacementStrategy;
 import za.co.entelect.challenge.strategy.shoot.TargetShootStrategy;
 
 import java.awt.*;
@@ -61,8 +58,11 @@ public class BotStrategy {
             final PlacementStrategy placementStrategy;
             switch (shipType) {
                 case Destroyer:
-                case Submarine:
+//                case Submarine:
                     placementStrategy = new LowestPlacementStrategy(copy, shipType);
+                    break;
+                case Carrier:
+                    placementStrategy = new HighestPlacementStrategy(copy, shipType);
                     break;
                 default:
                     placementStrategy = new RandomPlacementStrategy(copy, shipType);
@@ -88,7 +88,8 @@ public class BotStrategy {
 
     private Command makeMove() {
         if (botState.Mode == BotMode.HUNT) {
-            return new HuntShootStrategy().executeStrategy(gameState, botState);
+            int misses = botState.LastMisses.size();
+            return new HuntShootStrategy().executeStrategy(gameState, botState, misses == 0 || misses % 5 != 0);
         }
         return new TargetShootStrategy().executeStrategy(gameState, botState);
     }
@@ -100,10 +101,13 @@ public class BotStrategy {
             OpponentCell opponentCell = gameState.OpponentMap.getCellAt(lastShot.x, lastShot.y);
             if (opponentCell.Damaged) {
                 botState.LastTrackerHits.add(lastShot);
+                botState.LastMisses.clear();
 
                 if (botState.Mode == BotMode.HUNT) {
                     botState.Mode = BotMode.TARGET;
                 }
+            } else {
+                botState.LastMisses.add(lastShot);
             }
         }
 

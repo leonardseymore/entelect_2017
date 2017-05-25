@@ -12,6 +12,7 @@ public class BotState {
     public BotMode Mode = BotMode.HUNT;
     public List<Point> LastTrackerHits = new ArrayList<>();
     public Point LastShot;
+    public List<Point> LastMisses = new ArrayList<>();
     public Map<ShipType, Boolean> LastOpponentShipStatus = new HashMap<>();
     public ShipType LastDestroyedShip;
 
@@ -21,6 +22,7 @@ public class BotState {
                 "Mode=" + Mode +
                 ", LastTrackerHits=" + LastTrackerHits +
                 ", LastShot=" + LastShot +
+                ", LastMisses=" + LastMisses +
                 ", LastOpponentShipStatus=" + LastOpponentShipStatus +
                 ", LastDestroyedShip=" + LastDestroyedShip +
                 '}';

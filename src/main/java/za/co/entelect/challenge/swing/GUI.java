@@ -443,6 +443,16 @@ public class GUI extends JFrame {
         }
     }
 
+    private void highlightLastMisses(){
+        if (botState != null) {
+            for (Point p : botState.LastMisses) {
+                JButton button  = opponentMapButtons[p.x][p.y];
+                button.setBackground(Color.ORANGE);
+                button.setText(":(");
+            }
+        }
+    }
+
     private PlayerMap getOpponentPlayerMap() {
         if (gameState.PlayerMap.Owner.Key == 'A') {
             return gameStateBoth.Player2Map;
@@ -503,6 +513,7 @@ public class GUI extends JFrame {
         }
 
         highlightLastTrackerHits();
+        highlightLastMisses();
 
         if (opponentPlayerMap.Owner.Ships != null) {
             for (Ship ship : opponentPlayerMap.Owner.Ships) {
