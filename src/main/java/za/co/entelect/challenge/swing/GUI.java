@@ -267,10 +267,10 @@ public class GUI extends JFrame {
 
 
         for (OpponentShip ship : ships) {
-            JButton button = new JButton(ship.getShipType() + " " + (ship.Destroyed ? "(Destroyed)" : "" ));
+            JButton button = new JButton(ship.ShipType + " " + (ship.Destroyed ? "(Destroyed)" : "" ));
             button.addActionListener(e -> {
                 ProbabilityMap probabilityMap = getProbabilityMap();
-                setOpponentProbabilities(probabilityMap.getShipPossibilities(ship.getShipType()), probabilityMap.getShipProbabilities(ship.getShipType()));
+                setOpponentProbabilities(probabilityMap.getShipPossibilities(ship.ShipType), probabilityMap.getShipProbabilities(ship.ShipType));
             });
             opponentShipPanel.add(button);
         }

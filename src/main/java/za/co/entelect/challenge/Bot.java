@@ -65,7 +65,7 @@ public class Bot {
                 botState = loadBotState();
             } else {
                 for (OpponentShip ship : gameState.OpponentMap.Ships) {
-                    botState.LastOpponentShipStatus.put(ship.getShipType(), ship.Destroyed);
+                    botState.LastOpponentShipStatus.put(ship.ShipType, ship.Destroyed);
                 }
             }
             botStrategy = new BotStrategy(gameState, botState);

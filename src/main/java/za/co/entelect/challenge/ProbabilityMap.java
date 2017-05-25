@@ -84,10 +84,10 @@ public class ProbabilityMap {
         shipProbabilities = new HashMap<>();
         for (OpponentShip opponentShip : gameState.OpponentMap.Ships) {
             int[][] shipPossibilities = getShipPossiblities(opponentShip);
-            shipPossiblities.put(opponentShip.getShipType(), shipPossibilities);
+            shipPossiblities.put(opponentShip.ShipType, shipPossibilities);
 
             float[][] shipProbability = normalizeArray(shipPossibilities, mapDimension);
-            shipProbabilities.put(opponentShip.getShipType(), shipProbability);
+            shipProbabilities.put(opponentShip.ShipType, shipProbability);
 
             for (int i = 0; i < mapDimension; i++) {
                 for (int j = 0; j < mapDimension; j++) {
@@ -162,7 +162,7 @@ public class ProbabilityMap {
 
     private int updateShipPossiblities(OpponentShip opponentShip, int[][] shipPossibility, int x, int y) {
         OpponentMap opponentMap = gameState.OpponentMap;
-        ShipType shipType = opponentShip.getShipType();
+        ShipType shipType = opponentShip.ShipType;
         int result = 0;
         for (Direction dir : Direction.values()) {
             if (type == ProbabilityMapType.HUNT) {
@@ -174,7 +174,7 @@ public class ProbabilityMap {
                 }
             } else {
                 for (OpponentCell cell : opponentMap.getAllCellsInDirection(new Point(x, y), dir, shipType.getSize(), true)) {
-                    shipPossibility[cell.X][cell.Y] += opponentShip.getShipSize() - Util.dist(cell.getPoint(), new Point(x, y));
+                    shipPossibility[cell.X][cell.Y] += opponentShip.ShipType.getSize() - Util.dist(cell.getPoint(), new Point(x, y));
                 }
             }
         }

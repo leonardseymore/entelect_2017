@@ -90,20 +90,20 @@ public class BotStrategy {
         }
 
         for (OpponentShip ship : gameState.OpponentMap.Ships) {
-            boolean destroyed = botState.LastOpponentShipStatus.get(ship.getShipType());
+            boolean destroyed = botState.LastOpponentShipStatus.get(ship.ShipType);
             if (ship.Destroyed && !destroyed) {
-                botState.LastDestroyedShip = ship.getShipType();
-                int size = ship.getShipSize();
+                botState.LastDestroyedShip = ship.ShipType;
+                int size = ship.ShipType.getSize();
                 List<Point> lastHits = botState.LastTrackerHits;
 
                 List<List<Point>> p = getDestroyedShipPossibilities(size);
                 if (p.size() > 1) {
-                    logger.warn("We have multiple potentials for " + ship.getShipType());
+                    logger.warn("We have multiple potentials for " + ship.ShipType);
                 } else if (p.size() > 0) {
                     lastHits.removeAll(p.get(0));
-                    logger.info("Removing " + ship.getShipType() + " from last hit targets");
+                    logger.info("Removing " + ship.ShipType + " from last hit targets");
                 } else {
-                    logger.warn("Got no matching potentials for " + ship.getShipType());
+                    logger.warn("Got no matching potentials for " + ship.ShipType);
                 }
                 //lastHits.subList(lastHits.size() - size, lastHits.size()).clear();
 
@@ -111,7 +111,7 @@ public class BotStrategy {
                     botState.Mode = BotMode.HUNT;
                 }
             }
-            botState.LastOpponentShipStatus.put(ship.getShipType(), ship.Destroyed);
+            botState.LastOpponentShipStatus.put(ship.ShipType, ship.Destroyed);
         }
     }
 
