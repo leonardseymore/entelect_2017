@@ -2,15 +2,11 @@ package za.co.entelect.challenge.domain.state;
 
 import za.co.entelect.challenge.domain.command.Point;
 import za.co.entelect.challenge.domain.command.direction.Direction;
-import za.co.entelect.challenge.domain.command.ship.ShipType;
-import za.co.entelect.challenge.strategy.RandomPlacementStrategy;
 
+import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 
-public class OpponentMap {
+public class OpponentMap implements Serializable {
 
     public boolean Alive;
 

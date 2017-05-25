@@ -1,8 +1,9 @@
 package za.co.entelect.challenge.domain.state;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class BattleshipPlayer {
+public class BattleshipPlayer implements Serializable {
 
     public int FailedFirstRoundCommands;
 

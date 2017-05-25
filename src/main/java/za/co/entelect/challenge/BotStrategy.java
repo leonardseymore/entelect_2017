@@ -1,19 +1,32 @@
 package za.co.entelect.challenge;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import za.co.entelect.challenge.domain.command.Command;
 import za.co.entelect.challenge.domain.command.PlaceShipCommand;
 import za.co.entelect.challenge.domain.command.Point;
+import za.co.entelect.challenge.domain.command.direction.Direction;
+import za.co.entelect.challenge.domain.command.ship.ShipType;
+import za.co.entelect.challenge.domain.state.Cell;
 import za.co.entelect.challenge.domain.state.GameState;
 import za.co.entelect.challenge.domain.state.OpponentCell;
 import za.co.entelect.challenge.domain.state.OpponentShip;
-import za.co.entelect.challenge.strategy.HuntShootStrategy;
-import za.co.entelect.challenge.strategy.RandomPlacementStrategy;
-import za.co.entelect.challenge.strategy.TargetShootStrategy;
+import za.co.entelect.challenge.strategy.placement.Placement;
+import za.co.entelect.challenge.strategy.placement.RandomPlacementStrategy;
+import za.co.entelect.challenge.strategy.shoot.HuntShootStrategy;
+import za.co.entelect.challenge.strategy.placement.PlacementStrategy;
+import za.co.entelect.challenge.strategy.shoot.TargetShootStrategy;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class BotStrategy {
+
+    private static final Logger logger = LoggerFactory.getLogger(BotStrategy.class);
 
     private BotState botState;
     private GameState gameState;
@@ -34,7 +47,25 @@ public class BotStrategy {
     }
 
     public PlaceShipCommand placeShips() {
-        return new RandomPlacementStrategy().getShipPlacement(gameState);
+        GameState copy = gameState.deepCopy();
+        ArrayList<ShipType> shipPlacements = new ArrayList<>();
+        ArrayList<Point> points = new ArrayList<>();
+        ArrayList<Direction> directions = new ArrayList<>();
+        for (ShipType shipType : ShipType.values()) {
+            PlacementStrategy placementStrategy = new RandomPlacementStrategy(copy, shipType);
+            Placement placement = placementStrategy.getPlacement();
+            shipPlacements.add(placement.shipType);
+            points.add(placement.start);
+            directions.add(placement.direction);
+
+            List<Cell> cells = copy.PlayerMap.getAllCellsInDirection(placement.start, placement.direction, shipType.getSize());
+            cells.forEach(cell -> cell.Occupied = true);
+        }
+        PlaceShipCommand placeShipCommand = new PlaceShipCommand(shipPlacements, points, directions);
+        if (!placeShipCommand.isValid()) {
+            return placeShips();
+        }
+        return placeShipCommand;
     }
 
     private Command makeMove() {
@@ -61,15 +92,71 @@ public class BotStrategy {
         for (OpponentShip ship : gameState.OpponentMap.Ships) {
             boolean destroyed = botState.LastOpponentShipStatus.get(ship.getShipType());
             if (ship.Destroyed && !destroyed) {
+                botState.LastDestroyedShip = ship.getShipType();
                 int size = ship.getShipSize();
                 List<Point> lastHits = botState.LastTrackerHits;
-                lastHits.subList(lastHits.size() - size, lastHits.size()).clear();
+
+                List<List<Point>> p = getDestroyedShipPossibilities(size);
+                if (p.size() > 1) {
+                    logger.warn("We have multiple potentials for " + ship.getShipType());
+                } else if (p.size() > 0) {
+                    lastHits.removeAll(p.get(0));
+                    logger.info("Removing " + ship.getShipType() + " from last hit targets");
+                } else {
+                    logger.warn("Got no matching potentials for " + ship.getShipType());
+                }
+                //lastHits.subList(lastHits.size() - size, lastHits.size()).clear();
 
                 if (lastHits.size() == 0) {
                     botState.Mode = BotMode.HUNT;
                 }
             }
             botState.LastOpponentShipStatus.put(ship.getShipType(), ship.Destroyed);
+        }
+    }
+
+    public List<List<Point>> getDestroyedShipPossibilities(int size) {
+        List<List<Point>> result = new ArrayList<>();
+
+        List<Point> lastHits = botState.LastTrackerHits;
+
+        Point lastHit = lastHits.get(lastHits.size() - 1);
+        for (Direction dir : Direction.values()) {
+            PotentialSink potentialSink = isPotential(size, lastHit, dir, lastHits);
+            if (potentialSink.isPotentialSink) {
+                result.add(potentialSink.points);
+            }
+        }
+        return result;
+    }
+
+    private PotentialSink isPotential(int size, Point point, Direction dir, List<Point> lastHits) {
+        PotentialSink result = new PotentialSink();
+
+        if (gameState.OpponentMap.hasCellsForDirection(point, dir, size)) {
+            List<OpponentCell> cells = gameState.OpponentMap.getAllCellsInDirection(point, dir, size, false);
+            for (OpponentCell cell : cells) {
+                if (!lastHits.contains(cell.getPoint())) {
+                    result.isPotentialSink = false;
+                    return result;
+                }
+            }
+            result.isPotentialSink = true;
+            result.points = cells.stream().map(cell -> cell.getPoint()).collect(Collectors.toList());
+        }
+        return result;
+    }
+
+    class PotentialSink {
+        boolean isPotentialSink;
+        List<Point> points;
+
+        public PotentialSink() {
+        }
+
+        public PotentialSink(boolean isPotentialSink, List<Point> points) {
+            this.isPotentialSink = isPotentialSink;
+            this.points = points;
         }
     }
 }

@@ -2,7 +2,9 @@ package za.co.entelect.challenge.domain.state;
 
 import za.co.entelect.challenge.domain.command.ship.ShipType;
 
-public class OpponentShip {
+import java.io.Serializable;
+
+public class OpponentShip implements Serializable {
 
     public boolean Destroyed;
 

@@ -5,19 +5,19 @@ import org.slf4j.LoggerFactory;
 import za.co.entelect.challenge.*;
 import za.co.entelect.challenge.domain.command.*;
 import za.co.entelect.challenge.domain.command.Point;
+import za.co.entelect.challenge.domain.command.ship.ShipType;
 import za.co.entelect.challenge.domain.state.*;
+import za.co.entelect.challenge.strategy.placement.*;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
-import java.net.URL;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class GUI extends JFrame {
 
@@ -37,6 +37,7 @@ public class GUI extends JFrame {
     private JPanel mainPanel;
     private JPanel contentPanel;
     private JPanel replayPanel;
+    private JButton lastReplayButton;
     private JPanel playerPanel;
     private JPanel opponentPanel;
     private JButton[][] playerMapButtons;
@@ -112,11 +113,20 @@ public class GUI extends JFrame {
             JButton btn = new JButton();
             btn.setToolTipText(dir);
             btn.addActionListener(e -> {
+                if (lastReplayButton != null) {
+                    lastReplayButton.setBackground(Color.black);
+                }
+                lastReplayButton = btn;
+                btn.setBackground(Color.red);
                 File subDir = new File(replayDir, dir);
                 File inputState = new File(subDir, "A/input-state.json");
                 File botStateFile = new File(subDir, "A/bot-state.json");
                 File gameStateBothFile = new File(subDir, "state.json");
                 setGameState(Util.loadState(inputState), Util.loadBotState(botStateFile), Util.loadState(gameStateBothFile));
+
+                if (botState != null) {
+                    logger.info(botState.toString());
+                }
             });
             replayPanel.add(btn);
         }
@@ -168,9 +178,75 @@ public class GUI extends JFrame {
         playerShipPanel.add(new JLabel("Fired: " + player.ShotsFired));
         playerShipPanel.add(new JLabel("Hit: " + player.ShotsHit));
         playerShipPanel.add(new JLabel("Points: " + player.Points));
+        playerShipPanel.add(new JLabel("Round: " + gameState.Round));
 
         for (Ship ship : ships) {
             playerShipPanel.add(new JLabel(ship.ShipType + " " + (ship.Destroyed ? "(Destroyed)" : "" )));
+        }
+
+        PlacementMap map = new PlacementMap(gameState);
+        JButton button = new JButton("Placement Probabilities");
+        button.addActionListener(e -> {
+            setPlacementProbabilities(map.getPossibilities(), map.getProbabilities());
+        });
+        playerShipPanel.add(button);
+
+        playerShipPanel.add(new JLabel("Random Placements"));
+
+        for (Ship ship : ships) {
+            if (ship.Placed) {
+                continue;
+            }
+
+            JButton b = new JButton("Place Random " + ship.ShipType);
+            b.addActionListener(e -> {
+                PlacementStrategy placementStrategy = new RandomPlacementStrategy(gameState, ship.ShipType);
+                Placement placement = placementStrategy.getPlacement();
+                List<Cell> cells = gameState.PlayerMap.getAllCellsInDirection(placement.start, placement.direction, ship.ShipType.getSize());
+                for (Cell cell : cells) {
+                    playerMapButtons[cell.X][cell.Y].setBackground(Color.cyan);
+                }
+            });
+            playerShipPanel.add(b);
+        }
+
+        playerShipPanel.add(new JLabel("Lowest Placements"));
+
+        for (Ship ship : ships) {
+            if (ship.Placed) {
+                continue;
+            }
+
+            JButton b = new JButton("Place Lowest " + ship.ShipType);
+            b.addActionListener(e -> {
+                PlacementStrategy placementStrategy = new LowestPlacementStrategy(gameState, ship.ShipType);
+                Placement placement = placementStrategy.getPlacement();
+                List<Cell> cells = gameState.PlayerMap.getAllCellsInDirection(placement.start, placement.direction, ship.ShipType.getSize());
+                for (Cell cell : cells) {
+                    playerMapButtons[cell.X][cell.Y].setBackground(Color.magenta);
+                }
+            });
+            playerShipPanel.add(b);
+        }
+
+        playerShipPanel.add(new JLabel("Highest Placements"));
+
+
+        for (Ship ship : ships) {
+            if (ship.Placed) {
+                continue;
+            }
+
+            JButton b = new JButton("Place Highest " + ship.ShipType);
+            b.addActionListener(e -> {
+                PlacementStrategy placementStrategy = new HighestPlacementStrategy(gameState, ship.ShipType);
+                Placement placement = placementStrategy.getPlacement();
+                List<Cell> cells = gameState.PlayerMap.getAllCellsInDirection(placement.start, placement.direction, ship.ShipType.getSize());
+                for (Cell cell : cells) {
+                    playerMapButtons[cell.X][cell.Y].setBackground(Color.orange);
+                }
+            });
+            playerShipPanel.add(b);
         }
 
         return playerShipPanel;
@@ -185,6 +261,10 @@ public class GUI extends JFrame {
         opponentShipPanel.add(new JLabel(opponentMap.Name));
         opponentShipPanel.add(new JLabel("Alive: " + opponentMap.Alive));
         opponentShipPanel.add(new JLabel("Points: " + opponentMap.Points));
+        if (botState != null) {
+            opponentShipPanel.add(new JLabel("Last Destroyed Ship: " + botState.LastDestroyedShip));
+        }
+
 
         for (OpponentShip ship : ships) {
             JButton button = new JButton(ship.getShipType() + " " + (ship.Destroyed ? "(Destroyed)" : "" ));
@@ -219,11 +299,55 @@ public class GUI extends JFrame {
         });
         opponentShipPanel.add(bestShotButton);
 
+        JButton lastTrackerHits = new JButton("Last Tracker Hits");
+        lastTrackerHits.addActionListener(e -> {
+            highlightLastTrackerHits();
+        });
+        opponentShipPanel.add(lastTrackerHits);
+
+        JButton highlightDestroyedShipPossibilitiesButton = new JButton("Destroyed Ship Possibilities");
+        highlightDestroyedShipPossibilitiesButton.addActionListener(e -> {
+            highlightDestroyedShipPossibilities();
+        });
+        opponentShipPanel.add(highlightDestroyedShipPossibilitiesButton);
+
         if (botState != null) {
             opponentShipPanel.add(new JLabel("Mode: " + botState.Mode));
         }
 
         return opponentShipPanel;
+    }
+
+    private void highlightDestroyedShipPossibilities() {
+        if (botState.LastDestroyedShip == null) {
+            return;
+        }
+        List<List<Point>> p = botStrategy.getDestroyedShipPossibilities(botState.LastDestroyedShip.getSize());
+        int x = 0;
+        for (List<Point> pp : p) {
+            for (Point ppp : pp) {
+                opponentMapButtons[ppp.getX()][ppp.getY()].setBackground(Color.ORANGE);
+                opponentMapButtons[ppp.getX()][ppp.getY()].setText("Pot " + x);
+            }
+            x++;
+        }
+    }
+
+    private void setPlacementProbabilities(int[][] possibilities, float[][] probabilities) {
+        int mapDimension = gameState.MapDimension;
+        for (int i = 0; i < mapDimension; i++) {
+            for (int j = 0; j < mapDimension; j++) {
+                JButton opponentButton = playerMapButtons[j][i];
+                opponentButton.setText(String.format("%d", possibilities[j][i]));
+
+                Cell cell = gameState.PlayerMap.getCellAt(j, i);
+                Color color = Color.getHSBColor(0.66f, 1, Math.min(1f, probabilities[j][i]));
+                if (cell.Occupied) {
+                    color = Color.green;
+                }
+                opponentButton.setBackground(color);
+            }
+        }
     }
 
     private void setOpponentProbabilities(int[][] possibilities, float[][] probabilities) {
@@ -274,7 +398,7 @@ public class GUI extends JFrame {
                 JButton cellButton = new JButton();
                 cellButton.setContentAreaFilled(false);
                 cellButton.setOpaque(true);
-                cellButton.setBackground(getPlayerMapColor(playerMap.getCellAt(i, j)));
+                cellButton.setBackground(getPlayerMapColor(playerMap.getCellAt(j, i)));
                 playerMapPanel.add(cellButton);
                 playerMapButtons[j][i] = cellButton;
             }
@@ -287,6 +411,16 @@ public class GUI extends JFrame {
         JButton button  = opponentMapButtons[loc.x][loc.y];
         button.setBackground(Color.CYAN);
         button.setText("X");
+    }
+
+    private void highlightLastTrackerHits(){
+        if (botState != null) {
+            for (Point p : botState.LastTrackerHits) {
+                JButton button  = opponentMapButtons[p.x][p.y];
+                button.setBackground(Color.BLUE);
+                button.setText("*");
+            }
+        }
     }
 
     private void updateOpponentMapLayout(){
@@ -338,6 +472,16 @@ public class GUI extends JFrame {
                 );
                 opponentMapPanel.add(cellButton);
                 opponentMapButtons[j][i] = cellButton;
+            }
+        }
+
+        highlightLastTrackerHits();
+
+        if (opponentPlayerMap.Owner.Ships != null) {
+            for (Ship ship : opponentPlayerMap.Owner.Ships) {
+                for (Cell cell : ship.Cells) {
+                    opponentMapButtons[cell.X][cell.Y].setText(ship.ShipType.getShortVal());
+                }
             }
         }
     }

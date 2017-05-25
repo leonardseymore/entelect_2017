@@ -1,4 +1,4 @@
-package za.co.entelect.challenge.strategy;
+package za.co.entelect.challenge.strategy.shoot;
 
 import za.co.entelect.challenge.domain.command.Command;
 import za.co.entelect.challenge.domain.command.code.Code;

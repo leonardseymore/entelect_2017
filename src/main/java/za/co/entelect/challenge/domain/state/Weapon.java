@@ -1,6 +1,8 @@
 package za.co.entelect.challenge.domain.state;
 
-public class Weapon {
+import java.io.Serializable;
+
+public class Weapon  implements Serializable {
 
     public WeaponType WeaponType;
 

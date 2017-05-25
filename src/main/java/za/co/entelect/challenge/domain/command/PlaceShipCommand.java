@@ -2,6 +2,7 @@ package za.co.entelect.challenge.domain.command;
 
 import za.co.entelect.challenge.domain.command.direction.Direction;
 import za.co.entelect.challenge.domain.command.ship.ShipType;
+import za.co.entelect.challenge.domain.state.GameState;
 
 import java.util.ArrayList;
 
@@ -12,10 +13,18 @@ public class PlaceShipCommand {
     private ArrayList<Direction> directions;
 
     public PlaceShipCommand(ArrayList<ShipType> shipTypes, ArrayList<Point> points, ArrayList<Direction> directions) {
-
         this.shipTypes = shipTypes;
         this.points = points;
         this.directions = directions;
+    }
+
+    public boolean isValid() {
+        for (ShipType shipType : ShipType.values()) {
+            if (!this.shipTypes.contains(shipType)){
+                return false;
+            }
+        }
+        return true;
     }
 
     public ArrayList<ShipType> getShipTypes() {

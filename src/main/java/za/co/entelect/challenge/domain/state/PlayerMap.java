@@ -3,9 +3,10 @@ package za.co.entelect.challenge.domain.state;
 import za.co.entelect.challenge.domain.command.Point;
 import za.co.entelect.challenge.domain.command.direction.Direction;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class PlayerMap {
+public class PlayerMap implements Serializable {
 
     public BattleshipPlayer Owner;
 
@@ -20,7 +21,7 @@ public class PlayerMap {
     }
 
     public Cell getAdjacentCell(Cell cell, Direction direction) {
-        if (cell == null) {
+        if (cell == null || direction == null) {
             return null;
         }
 
@@ -70,7 +71,7 @@ public class PlayerMap {
 
         for (int i = 1; i < length; i++) {
             Cell nextCell = getAdjacentCell(startCell, direction);
-            if (nextCell == null) {
+            if (nextCell == null || nextCell.Occupied) {
                 return false;
             }
             startCell = nextCell;

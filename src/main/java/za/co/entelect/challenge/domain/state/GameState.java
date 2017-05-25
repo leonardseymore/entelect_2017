@@ -1,6 +1,10 @@
 package za.co.entelect.challenge.domain.state;
 
-public class GameState {
+import org.apache.commons.lang3.SerializationUtils;
+
+import java.io.Serializable;
+
+public class GameState implements Serializable {
 
     public PlayerMap PlayerMap;
 
@@ -19,4 +23,8 @@ public class GameState {
     public PlayerMap Player1Map;
 
     public PlayerMap Player2Map;
+
+    public GameState deepCopy(){
+        return SerializationUtils.clone(this);
+    }
 }

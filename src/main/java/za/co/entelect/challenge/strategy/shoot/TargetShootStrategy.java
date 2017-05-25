@@ -1,4 +1,4 @@
-package za.co.entelect.challenge.strategy;
+package za.co.entelect.challenge.strategy.shoot;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -6,7 +6,6 @@ import za.co.entelect.challenge.BotState;
 import za.co.entelect.challenge.ProbabilityMap;
 import za.co.entelect.challenge.ProbabilityMapType;
 import za.co.entelect.challenge.domain.command.Command;
-import za.co.entelect.challenge.domain.command.Point;
 import za.co.entelect.challenge.domain.command.code.Code;
 import za.co.entelect.challenge.domain.state.GameState;
 import za.co.entelect.challenge.domain.state.OpponentCell;
@@ -15,7 +14,6 @@ import za.co.entelect.challenge.domain.state.OpponentMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class TargetShootStrategy {
 

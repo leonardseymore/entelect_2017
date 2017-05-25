@@ -3,7 +3,9 @@ package za.co.entelect.challenge.domain.state;
 
 import za.co.entelect.challenge.domain.command.Point;
 
-public class OpponentCell {
+import java.io.Serializable;
+
+public class OpponentCell implements Serializable  {
 
     public boolean Damaged;
 

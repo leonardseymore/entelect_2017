@@ -1,4 +1,4 @@
-package za.co.entelect.challenge.strategy;
+package za.co.entelect.challenge.strategy.shoot;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,10 +12,8 @@ import za.co.entelect.challenge.domain.state.OpponentCell;
 import za.co.entelect.challenge.domain.state.OpponentMap;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ThreadLocalRandom;
 
 public class HuntShootStrategy {
 

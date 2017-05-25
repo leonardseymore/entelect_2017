@@ -13,4 +13,16 @@ public class BotState {
     public List<Point> LastTrackerHits = new ArrayList<>();
     public Point LastShot;
     public Map<ShipType, Boolean> LastOpponentShipStatus = new HashMap<>();
+    public ShipType LastDestroyedShip;
+
+    @Override
+    public String toString() {
+        return "BotState{" +
+                "Mode=" + Mode +
+                ", LastTrackerHits=" + LastTrackerHits +
+                ", LastShot=" + LastShot +
+                ", LastOpponentShipStatus=" + LastOpponentShipStatus +
+                ", LastDestroyedShip=" + LastDestroyedShip +
+                '}';
+    }
 }
